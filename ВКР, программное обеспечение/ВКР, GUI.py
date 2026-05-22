@@ -6,25 +6,35 @@ from tensorflow import keras
 
 
 
+try:
+    compound   = pd.read_excel("ВКР, датасет.xlsx", nrows=0, usecols="B:V")
+    compound   = compound.columns.tolist()
+
+    properties = pd.read_excel("ВКР, датасет.xlsx", nrows=0, usecols="W:AD")
+    properties = properties.columns.tolist()
+except Exception as e:
+    compound   = []
+    properties = []
 
 
-compound   = pd.read_excel("ВКР, датасет.xlsx", nrows=0, usecols="B:V")
-compound   = compound.columns.tolist()
 
-properties = pd.read_excel("ВКР, датасет.xlsx", nrows=0, usecols="W:AD")
-properties = properties.columns.tolist()
-
-
-
-scaler_X = joblib.load("ВКР, нормализаторы\\scaler_X.pkl")
-scaler_Y = joblib.load("ВКР, нормализаторы\\scaler_Y.pkl")
+try:
+    scaler_X = joblib.load("ВКР, нормализаторы\\scaler_X.pkl")
+    scaler_Y = joblib.load("ВКР, нормализаторы\\scaler_Y.pkl")
+except Exception as e:
+    scaler_X = []
+    scaler_Y = []
 
 
 
 models = []
 for i in range(8):
-    model = keras.models.load_model(f"ВКР, модели\\ВКР, модель {i + 1}.keras")
-    models.append(model)
+    try:
+        model = keras.models.load_model(f"ВКР, модели\\ВКР, модель {i + 1}.keras")
+        models.append(model)
+    except Exception as e:
+        models = []
+        break
 
 
 
@@ -89,6 +99,26 @@ def forecast():
 
 
 
+def check_models(models, scalers, characteristics):
+    check = True
+
+    if not models:
+        title_3.config(text=f"ОШИБКА: не удалось загрузить модели")
+        check = False
+    if not scalers:
+        title_3.config(text=f"ОШИБКА: не удалось загрузить нормализаторы")
+        check = False
+    if not characteristics:
+        title_3.config(text=f"ОШИБКА: не удалось загрузить названия элементов и свойств")
+        check = False
+
+    if not check:
+        for widget in root.winfo_children():
+            if isinstance(widget, (Button, Entry)):
+                widget.config(state="disabled")
+
+
+
 def validate_input(new_value):
     if new_value == "":
         return True
@@ -118,11 +148,11 @@ vcmd = (root.register(validate_input), '%P')
 title_1 = Label(root, text="ПРОГНОЗИРОВАНИЕ СВОЙСТВ", font=('Calibri Bold', 25))
 title_1.grid(row=0, column=0, columnspan=columns, pady=5)
 
-title_2 = Label(root, text="Введите процентный состав", font=font)
+title_2 = Label(root, text="Процентный состав", font=font)
 title_2.grid(row=2, column=0, columnspan=columns, pady=(30, 0))
 
 entries_compound = []
-for i in range(21):
+for i in range(len(compound)):
     r = i // 8 + 3
     c = (i * 2) % columns
 
@@ -147,7 +177,7 @@ title_4 = Label(root, text="Прогноз", font=font)
 title_4.grid(row=7, column=0, columnspan=columns)
 
 entries_properties = []
-for i in range(8):
+for i in range(len(properties)):
     r = i // 2 + 8
     c = (i * 8) % columns
 
@@ -160,6 +190,11 @@ for i in range(8):
 
     label = Label(root, width=10, text=properties[i].split(' ')[1], font=font, anchor='w')
     label.grid(row=r, column=(c + 6), columnspan=2, pady=10)
+
+
+
+check_models(models, scaler_X, compound)
+
 
 
 root.mainloop()
