@@ -63,6 +63,12 @@ def forecast():
     if sum(current_compound) != 100:
         title_3.config(text=f"ПРЕДУПРЕЖДЕНИЕ: неправильный ввод - сумма элементов состава ({sum(current_compound)}) не равна 100")
         return
+    elif current_compound[0] < 60:
+        title_3.config(text=f"ПРЕДУПРЕЖДЕНИЕ: неправильный ввод - концентрация Ni ({current_compound[0]}) меньше 60")
+        return
+    elif current_compound[1] < 10:
+        title_3.config(text=f"ПРЕДУПРЕЖДЕНИЕ: неправильный ввод - концентрация Cr ({current_compound[1]}) меньше 10")
+        return
     else:
         title_3.config(text="")
 
@@ -142,16 +148,18 @@ title_4.grid(row=7, column=0, columnspan=columns)
 
 entries_properties = []
 for i in range(8):
-    r = i // 4 + 8
-    c = (i * 4) % columns
+    r = i // 2 + 8
+    c = (i * 8) % columns
 
-    label = Label(root, width=10, text=properties[i], font=font)
+    label = Label(root, width=10, text=properties[i].split(' ')[0], font=font, anchor='w')
     label.grid(row=r, column=c, columnspan=2, pady=10)
 
-    entry = Entry(root, width=10, font=font, justify='center', state='readonly')
-    entry.grid(row=r, column=(c + 2), columnspan=2, padx=10)
+    entry = Entry(root, width=20, font=font, justify='center', state='readonly')
+    entry.grid(row=r, column=(c + 2), columnspan=4, padx=10, sticky='ew')
     entries_properties.append(entry)
 
+    label = Label(root, width=10, text=properties[i].split(' ')[1], font=font, anchor='w')
+    label.grid(row=r, column=(c + 6), columnspan=2, pady=10)
 
 
 root.mainloop()
